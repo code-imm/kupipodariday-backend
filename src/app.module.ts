@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Offer } from './offers/entities/offer.entity';
+import { OffersModule } from './offers/offers.module';
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
+import { Wish } from './wishes/entities/wish.entity';
 import { WishesModule } from './wishes/wishes.module';
+import { Wishlist } from './wishlists/entities/wishlist.entity';
 import { WishlistsModule } from './wishlists/wishlists.module';
-import { OffersModule } from './offers/offers.module';
 
 @Module({
   imports: [
@@ -17,7 +20,7 @@ import { OffersModule } from './offers/offers.module';
       username: 'student',
       password: 'student',
       database: 'kupipodariday',
-      entities: [User],
+      entities: [User, Wish, Wishlist, Offer],
       synchronize: true,
     }),
     UsersModule,
