@@ -1,23 +1,26 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
 } from '@nestjs/common';
-import { WishlistsService } from './wishlists.service';
+import { SafeUser } from 'src/users/entities/user.entity';
+import { User } from 'src/users/user.decorator';
 import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
+import { WishlistsService } from './wishlists.service';
 
 @Controller('wishlists')
 export class WishlistsController {
   constructor(private readonly wishlistsService: WishlistsService) {}
 
   @Post()
-  create(@Body() createWishlistDto: CreateWishlistDto) {
-    return this.wishlistsService.create(createWishlistDto);
+  create(@Body() createWishlistDto: CreateWishlistDto, @User() user: SafeUser) {
+    return this.wishlistsService.create(createWishlistDto, user);
   }
 
   @Get()

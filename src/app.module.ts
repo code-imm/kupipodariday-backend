@@ -1,7 +1,11 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import * as Joi from 'joi';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import configuration from './configuration';
 import { Offer } from './offers/entities/offer.entity';
 import { OffersModule } from './offers/offers.module';
 import { User } from './users/entities/user.entity';
@@ -10,6 +14,16 @@ import { Wish } from './wishes/entities/wish.entity';
 import { WishesModule } from './wishes/wishes.module';
 import { Wishlist } from './wishlists/entities/wishlist.entity';
 import { WishlistsModule } from './wishlists/wishlists.module';
+
+const schema = Joi.object({
+  port: Joi.number().integer().default(3000),
+  database: Joi.object({
+    url: Joi.string()
+      .pattern(/postgres:\/\/[a-zA-Z]/)
+      .required(),
+    port: Joi.number().integer().required(),
+  }),
+});
 
 @Module({
   imports: [
@@ -27,6 +41,11 @@ import { WishlistsModule } from './wishlists/wishlists.module';
     WishesModule,
     WishlistsModule,
     OffersModule,
+    AuthModule,
+    ConfigModule.forRoot({
+      validationSchema: schema,
+      load: [configuration],
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

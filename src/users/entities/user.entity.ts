@@ -59,3 +59,5 @@ export class User {
   @OneToMany(() => Wishlist, (wishlist) => wishlist.owner)
   wishlists: Wishlist[];
 }
+
+export type SafeUser = Omit<User, 'password'>;

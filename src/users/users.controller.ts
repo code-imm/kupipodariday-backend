@@ -1,42 +1,73 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
+  NotFoundException,
   Param,
-  Delete,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { WishesService } from 'src/wishes/wishes.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UsersService } from './users.service';
+import { FindUsersDto } from './dto/find-users.dto';
+import { JwtGuard } from 'src/guards/jwt.guard';
+import { User } from './user.decorator';
+import { SafeUser } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly wishesService: WishesService,
+  ) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  @Get('/me')
+  @UseGuards(JwtGuard)
+  async me(@User() user: SafeUser) {
+    const userId = user.id;
+    const foundUser = await this.usersService.findOne(userId);
+
+    if (!foundUser) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    const { password: _, ...safeUser } = foundUser;
+
+    return safeUser;
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @Patch('/me')
+  @UseGuards(JwtGuard)
+  update(@Body() updateUserDto: UpdateUserDto, @User() user: SafeUser) {
+    const userId = user.id;
+    return this.usersService.update(userId, updateUserDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @Get('/me/wishes')
+  @UseGuards(JwtGuard)
+  getWishesForCurrentUser(@User() user: SafeUser) {
+    const userId = user.id;
+    return this.wishesService.findWishesByUserId(userId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Get(':username')
+  @UseGuards(JwtGuard)
+  getUserByUsername(@Param('username') username: string) {
+    return this.usersService.findByUsername(username);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  @Get(':username/wishes')
+  @UseGuards(JwtGuard)
+  getUserWishes(@Param('username') username: string) {
+    return this.wishesService.findWishesByUsername(username);
+  }
+
+  @Post('find')
+  @UseGuards(JwtGuard)
+  getUser(@Body() findUsersDto: FindUsersDto) {
+    return this.usersService.findByUsernameOrEmail(findUsersDto.query);
   }
 }
