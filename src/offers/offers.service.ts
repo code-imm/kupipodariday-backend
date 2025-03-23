@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SafeUser } from 'src/users/entities/user.entity';
 import { DataSource, Repository } from 'typeorm';
@@ -16,7 +20,7 @@ export class OffersService {
 
   async create(createOfferDto: CreateOfferDto, user: SafeUser) {
     const { itemId, amount, ...others } = createOfferDto;
-    console.log(createOfferDto);
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -28,6 +32,13 @@ export class OffersService {
 
       if (!wish) {
         throw new NotFoundException('Желание не найдено');
+      }
+
+      const remainingAmount = Number(wish.price) - Number(wish.raised);
+      if (remainingAmount < amount) {
+        throw new BadRequestException(
+          `Ой! Сумма вашего предложения (${amount}) слишком большая. Осталось собрать всего ${remainingAmount}.`,
+        );
       }
 
       const offer = queryRunner.manager.create(Offer, {
