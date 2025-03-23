@@ -41,7 +41,10 @@ export class WishlistsService {
   }
 
   findOne(id: number) {
-    return this.wishlistRepository.findOne({ where: { id } });
+    return this.wishlistRepository.findOne({
+      where: { id },
+      relations: ['owner', 'items'],
+    });
   }
 
   async update(
