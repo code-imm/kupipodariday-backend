@@ -38,20 +38,28 @@ export class WishesService {
     });
   }
 
-  findOne(id: number) {
-    return this.wishRepository
+  async findOne(id: number) {
+    const wish = await this.wishRepository
       .createQueryBuilder('wish')
-      .leftJoinAndSelect('wish.owner', 'owner') // Загружаем владельца желания
-      .leftJoinAndSelect('wish.offers', 'offers') // Загружаем предложения
-      .leftJoinAndSelect('offers.user', 'user') // Загружаем пользователей для каждого предложения
-      .addSelect('COUNT(offers.id)', 'offersCount') // Подсчитываем количество предложений
-      .addSelect('COUNT(DISTINCT offers.user)', 'uniqueUsersCount') // Подсчитываем уникальных пользователей
+      .leftJoinAndSelect('wish.owner', 'owner')
+      .leftJoinAndSelect('wish.offers', 'offers')
+      .leftJoinAndSelect('offers.user', 'user')
       .where('wish.id = :id', { id })
-      .groupBy('wish.id') // Группируем по wish.id
-      .addGroupBy('owner.id') // Добавляем owner.id в GROUP BY
-      .addGroupBy('offers.id') // Добавляем offers.id в GROUP BY
-      .addGroupBy('user.id') // Добавляем user.id в GROUP BY
       .getOne();
+
+    if (!wish) {
+      return null;
+    }
+
+    wish.offers = wish.offers.map((offer) => {
+      const { user, ...rest } = offer;
+      return {
+        ...rest,
+        name: user?.username,
+      };
+    });
+
+    return wish;
   }
 
   findWishesByUserId(userId: number) {

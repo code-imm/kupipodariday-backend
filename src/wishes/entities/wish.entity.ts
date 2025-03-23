@@ -58,7 +58,7 @@ export class Wish {
   description: string;
 
   @OneToMany(() => Offer, (offer) => offer.item)
-  offers: Offer[];
+  offers: Partial<Offer>[];
 
   @Column({
     default: 0,
