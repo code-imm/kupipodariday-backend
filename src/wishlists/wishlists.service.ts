@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SafeUser } from 'src/users/entities/user.entity';
 import { Wish } from 'src/wishes/entities/wish.entity';
@@ -22,9 +27,22 @@ export class WishlistsService {
   ): Promise<Wishlist> {
     const { itemsId, ...rest } = createWishlistDto;
 
-    const wishes = await this.wishRepository.findBy({ id: In(itemsId) });
+    const wishes = await this.wishRepository.find({
+      where: { id: In(itemsId) },
+      relations: ['owner'],
+    });
+
     if (wishes.length !== itemsId.length) {
       throw new NotFoundException('Один или несколько подарков не найдены');
+    }
+
+    const isAllWishesBelongToUser = wishes.every(
+      (wish) => wish.owner.id === user.id,
+    );
+    if (!isAllWishesBelongToUser) {
+      throw new BadRequestException(
+        'Один или несколько подарков не принадлежат вам',
+      );
     }
 
     const wishlist = this.wishlistRepository.create({
@@ -75,7 +93,20 @@ export class WishlistsService {
     return this.wishlistRepository.save(wishlist);
   }
 
-  remove(id: number) {
-    return this.wishlistRepository.delete(id);
+  async remove(id: number, user: SafeUser): Promise<void> {
+    const wishlist = await this.wishlistRepository.findOne({
+      where: { id },
+      relations: ['owner'],
+    });
+
+    if (!wishlist) {
+      throw new NotFoundException('Вишлист не найден');
+    }
+
+    if (wishlist.owner.id !== user.id) {
+      throw new ForbiddenException('Вы не можете удалить чужой вишлист');
+    }
+
+    await this.wishlistRepository.delete(id);
   }
 }
