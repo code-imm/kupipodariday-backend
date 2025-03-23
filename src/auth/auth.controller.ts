@@ -4,7 +4,6 @@ import {
   Controller,
   HttpCode,
   Post,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { LocalGuard } from 'src/guards/local.guard';
@@ -12,8 +11,8 @@ import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { SafeUser } from 'src/users/entities/user.entity';
 import { User } from 'src/users/user.decorator';
 import { UsersService } from 'src/users/users.service';
-import { AuthService } from './auth.service';
 import { QueryFailedError } from 'typeorm';
+import { AuthService } from './auth.service';
 
 @Controller()
 export class AuthController {

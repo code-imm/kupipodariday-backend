@@ -6,16 +6,15 @@ import {
   Param,
   Patch,
   Post,
-  Req,
   UseGuards,
 } from '@nestjs/common';
-import { WishesService } from 'src/wishes/wishes.service';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { UsersService } from './users.service';
-import { FindUsersDto } from './dto/find-users.dto';
 import { JwtGuard } from 'src/guards/jwt.guard';
-import { User } from './user.decorator';
+import { WishesService } from 'src/wishes/wishes.service';
+import { FindUsersDto } from './dto/find-users.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { SafeUser } from './entities/user.entity';
+import { User } from './user.decorator';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
