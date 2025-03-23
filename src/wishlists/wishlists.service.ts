@@ -54,8 +54,10 @@ export class WishlistsService {
     return this.wishlistRepository.save(wishlist);
   }
 
-  findAll() {
-    return this.wishlistRepository.find();
+  async findAll(): Promise<Wishlist[]> {
+    return this.wishlistRepository.find({
+      relations: ['owner', 'items', 'items.owner'],
+    });
   }
 
   findOne(id: number) {
@@ -93,7 +95,7 @@ export class WishlistsService {
     return this.wishlistRepository.save(wishlist);
   }
 
-  async remove(id: number, user: SafeUser): Promise<void> {
+  async remove(id: number, user: SafeUser) {
     const wishlist = await this.wishlistRepository.findOne({
       where: { id },
       relations: ['owner'],
@@ -107,6 +109,12 @@ export class WishlistsService {
       throw new ForbiddenException('Вы не можете удалить чужой вишлист');
     }
 
-    await this.wishlistRepository.delete(id);
+    const result = await this.wishlistRepository.delete(id);
+
+    if (result.affected === 0) {
+      throw new NotFoundException('Вишлист не найден');
+    }
+
+    return {};
   }
 }

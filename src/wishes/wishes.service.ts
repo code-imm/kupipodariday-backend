@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SafeUser } from 'src/users/entities/user.entity';
 import { DataSource, Repository } from 'typeorm';
@@ -70,23 +74,39 @@ export class WishesService {
     return this.wishRepository.find({ where: { owner: { username } } });
   }
 
-  async update(id: number, updateWishDto: UpdateWishDto) {
-    const wish = await this.wishRepository.findOne({ where: { id } });
+  async update(id: number, updateWishDto: UpdateWishDto, user: SafeUser) {
+    const wish = await this.wishRepository.findOne({
+      where: { id },
+      relations: ['owner'],
+    });
+
     if (!wish) {
       throw new NotFoundException('Подарок не найден');
     }
 
-    // TODO: в OpenAPI метод ничего не возвращает
+    if (wish.owner.id !== user.id) {
+      throw new ForbiddenException('Вы не можете редактировать чужой подарок');
+    }
+
     Object.assign(wish, updateWishDto);
     return this.wishRepository.save(wish);
   }
 
-  async remove(id: number) {
-    const result = await this.wishRepository.delete(id);
+  async remove(id: number, user: SafeUser) {
+    const wish = await this.wishRepository.findOne({
+      where: { id },
+      relations: ['owner'],
+    });
 
-    if (result.affected === 0) {
+    if (!wish) {
       throw new NotFoundException('Подарок не найден');
     }
+
+    if (wish.owner.id !== user.id) {
+      throw new ForbiddenException('Вы не можете удалить чужой подарок');
+    }
+
+    await this.wishRepository.delete(id);
   }
 
   async copy(id: number, user: SafeUser): Promise<Wish> {
