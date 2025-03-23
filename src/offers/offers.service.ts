@@ -10,6 +10,14 @@ import { CreateOfferDto } from './dto/create-offer.dto';
 import { Offer } from './entities/offer.entity';
 import { Wish } from 'src/wishes/entities/wish.entity';
 
+const ERROR_MESSAGES = {
+  WISH_NOT_FOUND: 'Желание не найдено',
+  OWNER_CANNOT_CONTRIBUTE:
+    'Вы не можете скинуть деньги на свое собственное желание.',
+  AMOUNT_EXCEEDS_REMAINING: (amount: number, remainingAmount: number) =>
+    `Сумма предложения (${amount}) превышает оставшуюся сумму (${remainingAmount}) для достижения цели.`,
+};
+
 @Injectable()
 export class OffersService {
   constructor(
@@ -28,16 +36,21 @@ export class OffersService {
     try {
       const wish = await queryRunner.manager.findOne(Wish, {
         where: { id: itemId },
+        relations: ['owner'],
       });
 
       if (!wish) {
-        throw new NotFoundException('Желание не найдено');
+        throw new NotFoundException(ERROR_MESSAGES.WISH_NOT_FOUND);
+      }
+
+      if (wish.owner.id === user.id) {
+        throw new BadRequestException(ERROR_MESSAGES.OWNER_CANNOT_CONTRIBUTE);
       }
 
       const remainingAmount = Number(wish.price) - Number(wish.raised);
       if (remainingAmount < amount) {
         throw new BadRequestException(
-          `Ой! Сумма вашего предложения (${amount}) слишком большая. Осталось собрать всего ${remainingAmount}.`,
+          ERROR_MESSAGES.AMOUNT_EXCEEDS_REMAINING(amount, remainingAmount),
         );
       }
 
