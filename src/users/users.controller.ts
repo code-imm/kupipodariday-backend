@@ -34,11 +34,10 @@ export class UsersController {
       throw new NotFoundException('Пользователь не найден');
     }
 
-    const { password: _, ...safeUser } = foundUser;
-
-    return safeUser;
+    return foundUser;
   }
 
+  // TODO: валидировать с joi
   @Patch('/me')
   @UseGuards(JwtGuard)
   update(@Body() updateUserDto: UpdateUserDto, @User() user: SafeUser) {
@@ -65,9 +64,9 @@ export class UsersController {
     return this.wishesService.findWishesByUsername(username);
   }
 
-  @Post('find')
+  @Post('/find')
   @UseGuards(JwtGuard)
-  getUser(@Body() findUsersDto: FindUsersDto) {
+  getUsers(@Body() findUsersDto: FindUsersDto) {
     return this.usersService.findByUsernameOrEmail(findUsersDto.query);
   }
 }

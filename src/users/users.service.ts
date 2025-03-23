@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 @Injectable()
 export class UsersService {
@@ -38,21 +40,38 @@ export class UsersService {
     });
   }
 
-  findByUsername(username: string) {
-    return this.userRepository.findOne({
-      where: {
-        username,
-      },
-    });
+  findByUsername(
+    username: string,
+    includePassword = false,
+  ): Promise<User | null> {
+    const query = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.username = :username', { username });
+
+    if (includePassword) {
+      query.addSelect('user.password');
+    }
+
+    return query.getOne();
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const user = plainToInstance(UpdateUserDto, updateUserDto);
+    const errors = await validate(user);
+
+    if (errors.length > 0) {
+      throw new BadRequestException('Ошибка валидации переданных значений');
+    }
+
     return this.userRepository.save({ id, ...updateUserDto });
   }
 
   findByUsernameOrEmail(query: string): Promise<User[]> {
     return this.userRepository.find({
-      where: [{ username: query }, { email: query }],
+      where: [
+        { username: ILike(`%${query}%`) },
+        { email: ILike(`%${query}%`) },
+      ],
     });
   }
 }

@@ -17,27 +17,32 @@ export class WishesService {
   create(createWishDto: CreateWishDto, owner: SafeUser): Promise<Wish> {
     const wish = this.wishRepository.create({
       ...createWishDto,
-      owner,
+      owner: { id: owner.id },
     });
     return this.wishRepository.save(wish);
   }
 
   findLast() {
-    return this.wishRepository.findOne({
+    return this.wishRepository.find({
       where: {},
       order: { createdAt: 'DESC' },
+      take: 40,
     });
   }
 
   findTop() {
-    return this.wishRepository.findOne({
+    return this.wishRepository.find({
       where: {},
       order: { copied: 'DESC' },
+      take: 20,
     });
   }
 
   findOne(id: number) {
-    return this.wishRepository.findOne({ where: { id } });
+    return this.wishRepository.findOne({
+      where: { id },
+      relations: ['owner', 'offers'],
+    });
   }
 
   findWishesByUserId(userId: number) {

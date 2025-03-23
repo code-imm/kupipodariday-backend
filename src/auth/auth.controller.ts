@@ -32,8 +32,7 @@ export class AuthController {
   async signup(@Body() createUserDto: CreateUserDto) {
     try {
       const user = await this.usersService.create(createUserDto);
-      const { password: _, ...safeUser } = user;
-      return safeUser;
+      return user;
     } catch (error) {
       if (error instanceof QueryFailedError) {
         if ('code' in error && error.code === '23505') {

@@ -15,7 +15,7 @@ export class OffersService {
   create(createOfferDto: CreateOfferDto, user: SafeUser) {
     const wish = this.offerRepository.create({
       ...createOfferDto,
-      user,
+      user: { id: user.id },
     });
     return this.offerRepository.save(wish);
   }

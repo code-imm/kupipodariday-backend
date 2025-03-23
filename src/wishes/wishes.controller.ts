@@ -27,16 +27,14 @@ export class WishesController {
 
   @Get('/last')
   @UseGuards(JwtGuard)
-  async getLast() {
-    const lastWish = await this.wishesService.findLast();
-    return lastWish ? [lastWish] : [];
+  getLast() {
+    return this.wishesService.findLast();
   }
 
   @Get('/top')
   @UseGuards(JwtGuard)
-  async getTop() {
-    const topWish = await this.wishesService.findTop();
-    return topWish ? [topWish] : [];
+  getTop() {
+    return this.wishesService.findTop();
   }
 
   @Get(':id')
