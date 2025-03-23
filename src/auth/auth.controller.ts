@@ -4,6 +4,7 @@ import {
   Controller,
   HttpCode,
   Post,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { LocalGuard } from 'src/guards/local.guard';
