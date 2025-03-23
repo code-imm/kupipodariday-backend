@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { SafeUser, User } from 'src/users/entities/user.entity';
+import { SafeUser } from 'src/users/entities/user.entity';
 import { DataSource, Repository } from 'typeorm';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto copy';
@@ -10,7 +10,7 @@ import { Wish } from './entities/wish.entity';
 export class WishesService {
   constructor(
     @InjectRepository(Wish)
-    private wishRepository: Repository<Wish>,
+    private readonly wishRepository: Repository<Wish>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -39,10 +39,19 @@ export class WishesService {
   }
 
   findOne(id: number) {
-    return this.wishRepository.findOne({
-      where: { id },
-      relations: ['owner', 'offers'],
-    });
+    return this.wishRepository
+      .createQueryBuilder('wish')
+      .leftJoinAndSelect('wish.owner', 'owner') // Загружаем владельца желания
+      .leftJoinAndSelect('wish.offers', 'offers') // Загружаем предложения
+      .leftJoinAndSelect('offers.user', 'user') // Загружаем пользователей для каждого предложения
+      .addSelect('COUNT(offers.id)', 'offersCount') // Подсчитываем количество предложений
+      .addSelect('COUNT(DISTINCT offers.user)', 'uniqueUsersCount') // Подсчитываем уникальных пользователей
+      .where('wish.id = :id', { id })
+      .groupBy('wish.id') // Группируем по wish.id
+      .addGroupBy('owner.id') // Добавляем owner.id в GROUP BY
+      .addGroupBy('offers.id') // Добавляем offers.id в GROUP BY
+      .addGroupBy('user.id') // Добавляем user.id в GROUP BY
+      .getOne();
   }
 
   findWishesByUserId(userId: number) {
