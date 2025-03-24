@@ -36,7 +36,6 @@ export class UsersController {
     return foundUser;
   }
 
-  // TODO: валидировать с joi
   @Patch('/me')
   @UseGuards(JwtGuard)
   update(@Body() updateUserDto: UpdateUserDto, @User() user: SafeUser) {

@@ -28,7 +28,7 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 
-  // TODO: OpenAPI, minLength 2
+  // OpenAPI, minLength 2
   @IsDefined()
   @IsString()
   @MinLength(2)

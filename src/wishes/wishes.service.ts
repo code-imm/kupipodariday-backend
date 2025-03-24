@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -9,6 +10,8 @@ import { DataSource, Repository } from 'typeorm';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto copy';
 import { Wish } from './entities/wish.entity';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 @Injectable()
 export class WishesService {
@@ -23,6 +26,7 @@ export class WishesService {
       ...createWishDto,
       owner: { id: owner.id },
     });
+
     return this.wishRepository.save(wish);
   }
 
@@ -75,6 +79,13 @@ export class WishesService {
   }
 
   async update(id: number, updateWishDto: UpdateWishDto, user: SafeUser) {
+    const plainWish = plainToInstance(UpdateWishDto, updateWishDto);
+    const errors = await validate(plainWish);
+
+    if (errors.length > 0) {
+      throw new BadRequestException('Ошибка валидации переданных значений');
+    }
+
     const wish = await this.wishRepository.findOne({
       where: { id },
       relations: ['owner'],
