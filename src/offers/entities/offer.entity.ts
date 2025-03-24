@@ -23,7 +23,10 @@ export class Offer {
   @ManyToOne(() => User, (user) => user.offers)
   user: User;
 
-  @ManyToOne(() => Wish, (wish) => wish.offers)
+  @ManyToOne(() => Wish, (wish) => wish.offers, {
+    onDelete: 'CASCADE', // Удаление связанных записей при удалении wish
+    onUpdate: 'CASCADE', // Обновление связанных записей при обновлении wish
+  })
   item: Wish;
 
   @Column({

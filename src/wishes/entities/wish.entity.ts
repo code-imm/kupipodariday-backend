@@ -57,7 +57,10 @@ export class Wish {
   @Length(1, 1024)
   description: string;
 
-  @OneToMany(() => Offer, (offer) => offer.item)
+  @OneToMany(() => Offer, (offer) => offer.item, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   offers: Partial<Offer>[];
 
   @Column({

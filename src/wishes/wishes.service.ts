@@ -148,6 +148,7 @@ export class WishesService {
         createdAt: undefined,
         updatedAt: undefined,
         copied: 0,
+        raised: 0,
         owner: user,
       });
 
