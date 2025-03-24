@@ -20,7 +20,7 @@
 
 ```bash
 # Клонирование репозитория
-git clone https://gitlab.example.com/kupipodariday/backend.git
+git clone https://github.com/code-imm/kupipodariday-backend.git
 cd backend
 
 # Установка зависимостей
