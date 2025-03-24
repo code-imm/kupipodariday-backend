@@ -12,6 +12,13 @@ import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
 import { Wishlist } from './entities/wishlist.entity';
 
+const ERROR_MESSAGES = {
+  WISH_NOT_FOUND: 'Один или несколько подарков не найдены',
+  WISH_NOT_OWNED: 'Один или несколько подарков не принадлежат вам',
+  WISHLIST_NOT_FOUND: 'Вишлист не найден',
+  WISHLIST_FORBIDDEN: 'Вы не можете удалить чужой вишлист',
+};
+
 @Injectable()
 export class WishlistsService {
   constructor(
@@ -33,16 +40,14 @@ export class WishlistsService {
     });
 
     if (wishes.length !== itemsId.length) {
-      throw new NotFoundException('Один или несколько подарков не найдены');
+      throw new NotFoundException(ERROR_MESSAGES.WISH_NOT_FOUND);
     }
 
     const isAllWishesBelongToUser = wishes.every(
       (wish) => wish.owner.id === user.id,
     );
     if (!isAllWishesBelongToUser) {
-      throw new BadRequestException(
-        'Один или несколько подарков не принадлежат вам',
-      );
+      throw new BadRequestException(ERROR_MESSAGES.WISH_NOT_OWNED);
     }
 
     const wishlist = this.wishlistRepository.create({
@@ -79,7 +84,7 @@ export class WishlistsService {
     });
 
     if (!wishlist) {
-      throw new NotFoundException('Вишлист не найден');
+      throw new NotFoundException(ERROR_MESSAGES.WISHLIST_NOT_FOUND);
     }
 
     Object.assign(wishlist, rest);
@@ -87,7 +92,7 @@ export class WishlistsService {
     if (itemsId) {
       const wishes = await this.wishRepository.findBy({ id: In(itemsId) });
       if (wishes.length !== itemsId.length) {
-        throw new NotFoundException('Один или несколько подарков не найдены');
+        throw new NotFoundException(ERROR_MESSAGES.WISH_NOT_FOUND);
       }
       wishlist.items = wishes;
     }
@@ -102,17 +107,17 @@ export class WishlistsService {
     });
 
     if (!wishlist) {
-      throw new NotFoundException('Вишлист не найден');
+      throw new NotFoundException(ERROR_MESSAGES.WISHLIST_NOT_FOUND);
     }
 
     if (wishlist.owner.id !== user.id) {
-      throw new ForbiddenException('Вы не можете удалить чужой вишлист');
+      throw new ForbiddenException(ERROR_MESSAGES.WISHLIST_FORBIDDEN);
     }
 
     const result = await this.wishlistRepository.delete(id);
 
     if (result.affected === 0) {
-      throw new NotFoundException('Вишлист не найден');
+      throw new NotFoundException(ERROR_MESSAGES.WISHLIST_NOT_FOUND);
     }
 
     return {};

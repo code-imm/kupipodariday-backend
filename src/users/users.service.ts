@@ -8,6 +8,10 @@ import * as bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 
+const ERROR_MESSAGES = {
+  VALIDATION_FAILED: 'Ошибка валидации переданных значений',
+};
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -17,7 +21,6 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     const { password, ...rest } = createUserDto;
-
     const hashedPassword = await this.hashPassword(password);
 
     const user = this.userRepository.create({
@@ -60,7 +63,7 @@ export class UsersService {
     const errors = await validate(user);
 
     if (errors.length > 0) {
-      throw new BadRequestException('Ошибка валидации переданных значений');
+      throw new BadRequestException(ERROR_MESSAGES.VALIDATION_FAILED);
     }
 
     return this.userRepository.save({ id, ...updateUserDto });

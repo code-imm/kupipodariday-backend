@@ -13,6 +13,13 @@ import { Wish } from './entities/wish.entity';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 
+const ERROR_MESSAGES = {
+  VALIDATION_ERROR: 'Ошибка валидации переданных значений',
+  WISH_NOT_FOUND: 'Подарок не найден',
+  FORBIDDEN_EDIT: 'Вы не можете редактировать чужой подарок',
+  FORBIDDEN_DELETE: 'Вы не можете удалить чужой подарок',
+};
+
 @Injectable()
 export class WishesService {
   constructor(
@@ -83,7 +90,7 @@ export class WishesService {
     const errors = await validate(plainWish);
 
     if (errors.length > 0) {
-      throw new BadRequestException('Ошибка валидации переданных значений');
+      throw new BadRequestException(ERROR_MESSAGES.VALIDATION_ERROR);
     }
 
     const wish = await this.wishRepository.findOne({
@@ -92,11 +99,11 @@ export class WishesService {
     });
 
     if (!wish) {
-      throw new NotFoundException('Подарок не найден');
+      throw new NotFoundException(ERROR_MESSAGES.WISH_NOT_FOUND);
     }
 
     if (wish.owner.id !== user.id) {
-      throw new ForbiddenException('Вы не можете редактировать чужой подарок');
+      throw new ForbiddenException(ERROR_MESSAGES.FORBIDDEN_EDIT);
     }
 
     Object.assign(wish, updateWishDto);
@@ -110,11 +117,11 @@ export class WishesService {
     });
 
     if (!wish) {
-      throw new NotFoundException('Подарок не найден');
+      throw new NotFoundException(ERROR_MESSAGES.WISH_NOT_FOUND);
     }
 
     if (wish.owner.id !== user.id) {
-      throw new ForbiddenException('Вы не можете удалить чужой подарок');
+      throw new ForbiddenException(ERROR_MESSAGES.FORBIDDEN_DELETE);
     }
 
     await this.wishRepository.delete(id);
@@ -132,7 +139,7 @@ export class WishesService {
       });
 
       if (!originalWish) {
-        throw new NotFoundException('Подарок не найден');
+        throw new NotFoundException(ERROR_MESSAGES.WISH_NOT_FOUND);
       }
 
       const copiedWish = queryRunner.manager.create(Wish, {

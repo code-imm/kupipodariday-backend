@@ -16,6 +16,10 @@ import { SafeUser } from './entities/user.entity';
 import { User } from './user.decorator';
 import { UsersService } from './users.service';
 
+const ERROR_MESSAGES = {
+  USER_NOT_FOUND: 'Пользователь не найден',
+};
+
 @Controller('users')
 export class UsersController {
   constructor(
@@ -30,7 +34,7 @@ export class UsersController {
     const foundUser = await this.usersService.findOne(userId);
 
     if (!foundUser) {
-      throw new NotFoundException('Пользователь не найден');
+      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     return foundUser;
@@ -52,8 +56,13 @@ export class UsersController {
 
   @Get(':username')
   @UseGuards(JwtGuard)
-  getUserByUsername(@Param('username') username: string) {
-    return this.usersService.findByUsername(username);
+  async getUserByUsername(@Param('username') username: string) {
+    const user = await this.usersService.findByUsername(username);
+    if (!user) {
+      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+    }
+
+    return user;
   }
 
   @Get(':username/wishes')
