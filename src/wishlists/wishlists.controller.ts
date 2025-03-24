@@ -26,11 +26,13 @@ export class WishlistsController {
   }
 
   @Get()
+  @UseGuards(JwtGuard)
   findAll() {
     return this.wishlistsService.findAll();
   }
 
   @Get(':id')
+  @UseGuards(JwtGuard)
   findOne(@Param('id') id: string) {
     return this.wishlistsService.findOne(+id);
   }

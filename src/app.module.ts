@@ -2,8 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import configuration from './configuration';
 import { Offer } from './offers/entities/offer.entity';
@@ -29,11 +27,7 @@ const schema = Joi.object({
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'student',
-      password: 'student',
-      database: 'kupipodariday',
+      url: configuration().database.url,
       entities: [User, Wish, Wishlist, Offer],
       synchronize: true,
     }),
@@ -47,7 +41,5 @@ const schema = Joi.object({
       load: [configuration],
     }),
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

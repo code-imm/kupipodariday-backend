@@ -16,11 +16,13 @@ export class OffersController {
   }
 
   @Get()
+  @UseGuards(JwtGuard)
   findAll() {
     return this.offersService.findAll();
   }
 
   @Get(':id')
+  @UseGuards(JwtGuard)
   findOne(@Param('id') id: string) {
     return this.offersService.findOne(+id);
   }

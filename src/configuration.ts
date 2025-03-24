@@ -4,5 +4,5 @@ export default () => ({
     url: process.env.DATABASE_URL,
     port: parseInt(process.env.DATABASE_PORT!, 10) || 5432,
   },
-  jwt_secret: 'jwt_secret',
+  jwt_secret: process.env.JWT_SECRET,
 });

@@ -1,8 +1,8 @@
 {
-  "name": "nest-js-project",
+  "name": "kpd",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": "Daniil Kolesnikov <codeimm@yandex.ru>",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
