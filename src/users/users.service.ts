@@ -1,15 +1,17 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
+import { ILike, Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
+import { SafeUser, User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 
 const ERROR_MESSAGES = {
   VALIDATION_FAILED: 'Ошибка валидации переданных значений',
+  EMAIL_OR_USERNAME_TAKEN:
+    'Пользователь с таким email или username уже зарегистрирован',
 };
 
 @Injectable()
@@ -58,15 +60,36 @@ export class UsersService {
     return query.getOne();
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = plainToInstance(UpdateUserDto, updateUserDto);
-    const errors = await validate(user);
+  async update(user: SafeUser, updateUserDto: UpdateUserDto) {
+    const updatedUser = plainToInstance(UpdateUserDto, updateUserDto);
+    const errors = await validate(updatedUser);
 
     if (errors.length > 0) {
       throw new BadRequestException(ERROR_MESSAGES.VALIDATION_FAILED);
     }
 
-    return this.userRepository.save({ id, ...updateUserDto });
+    const whereConditions = [];
+
+    if (updateUserDto.email) {
+      whereConditions.push({ email: updateUserDto.email, id: Not(user.id) });
+    }
+
+    if (updateUserDto.username) {
+      whereConditions.push({
+        username: updateUserDto.username,
+        id: Not(user.id),
+      });
+    }
+
+    const existingUser = await this.userRepository.findOne({
+      where: whereConditions,
+    });
+
+    if (existingUser) {
+      throw new BadRequestException(ERROR_MESSAGES.EMAIL_OR_USERNAME_TAKEN);
+    }
+
+    return this.userRepository.save({ id: user.id, ...updateUserDto });
   }
 
   findByUsernameOrEmail(query: string): Promise<User[]> {

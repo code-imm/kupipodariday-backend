@@ -42,9 +42,8 @@ export class UsersController {
 
   @Patch('/me')
   @UseGuards(JwtGuard)
-  update(@Body() updateUserDto: UpdateUserDto, @User() user: SafeUser) {
-    const userId = user.id;
-    return this.usersService.update(userId, updateUserDto);
+  update(@User() user: SafeUser, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(user, updateUserDto);
   }
 
   @Get('/me/wishes')
